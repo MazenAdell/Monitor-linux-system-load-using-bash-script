@@ -1,0 +1,29 @@
+#!/bin/bash
+# Script to monitor system performance
+
+#Get the value of the load at 1,5,15 Mins
+MIN1=`top |head -1| awk '{print $10 $11 $12}'| awk ' BEGIN { FS="," } {print  $1 }'`
+MIN5=`top |head -1| awk '{print $10 $11 $12}'| awk ' BEGIN { FS="," } { print $2 }'`
+MIN15=`top |head -1| awk '{print $10 $11 $12}'| awk ' BEGIN { FS="," } { print $3 }'`
+
+#Get the ip of the Server
+IP=`ip a | sed -n 11p | awk '{ print $2 }'`
+
+#Convert The Float Number to Decimal for the if condition
+MIN1DEC=`echo "${MIN1} * 100 " |bc | awk ' BEGIN { FS="." } { print $1 } '`
+MIN5DEC=`echo "${MIN5} * 100 " |bc | awk ' BEGIN { FS="." } { print $1 } '`
+
+#Monitor the load
+if [ ${MIN1DEC} -gt ${MIN5DEC} ]
+  then
+     echo "The Load is Increasing (The current load = ${MIN1} at $(date)" >>/var/log/systemload
+     echo " Subject: Server ${IP} load
+                Body:
+                        Dear, 
+                                The system ${HOSTNAME} runs with IP ${IP} has a load of 
+                                1MIN load: ${MIN1}
+                                5MIN load: ${MIN5}
+                                15MIN load:${MIN15}
+                        Thank you .">>/tmp/events
+  fi
+exit 0
